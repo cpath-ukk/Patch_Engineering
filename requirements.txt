@@ -1,0 +1,18 @@
+certifi @ file:///croot/certifi_1671487769961/work/certifi
+cycler==0.11.0
+fonttools==4.38.0
+kiwisolver==1.4.5
+matplotlib==3.5.3
+numpy==1.21.6
+opencv-python==4.9.0.80
+packaging==24.0
+Pillow==9.5.0
+pyparsing==3.1.2
+python-dateutil==2.9.0.post0
+PyYAML @ file:///croot/pyyaml_1670514731622/work
+scipy==1.2.0
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+spams==2.6.1
+staintools==2.1.2
+tqdm==4.66.4
+typing_extensions==4.7.1

@@ -1,0 +1,16 @@
+# random.yaml
+mode: random
+seed: 42
+cpus: [32,33,34,35,36,37,38,39,40,41,42,43,45,44,46,47,48]
+
+m_norm_img: /data/01_user/02_ch/DATA/01_Train/02_Patch_Engineering/macenko_image.jpg
+norm_pickle: /archive/arch02/03_CH/00_TMP/08_Test_PE_github/macenko.pkl
+
+data_root: /archive/arch02/03_CH/00_TMP/08_Test_PE_github/train_data/train
+mask_dir_name: mask_FINAL
+image_dir_name: image
+
+stitch_masks: /data/01_user/02_ch/DATA/01_Train/02_Patch_Engineering/00_Benign_Gland_Masks/
+output_dir: /archive/arch02/03_CH/00_TMP/08_Test_PE_github/random_stitching
+
+n_patches: 100
