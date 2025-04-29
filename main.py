@@ -118,6 +118,8 @@ def main():
     args = parse_args()
     cfg = load_config(args.config)
 
+    assert cfg['mode'] in ['generalized','targeted_filter','targeted_matrix'] , "Unknown Mode in config !"
+
     # prepare output dirs
     os.makedirs(cfg['output_dir'], exist_ok=True)
     cpus = cfg['cpus']  # list of ints
@@ -139,7 +141,7 @@ def main():
         combos = read_combos(cfg)
         job_chunks = chunk_tasks(combos, n_cpus)
     else:
-        job_chunks = [None]*n_cpus
+        job_chunks = ['chunk']*n_cpus # chunk is just a filler string
 
     # spawn workers
     cpu_q = Queue()
@@ -165,7 +167,7 @@ def main():
             ]
         elif mode == 'targeted_filter':
             script = 'worker_targeted_filter.py'
-            fp = cfg['targeted_filter_pairs']
+            fp = cfg['filter_pairs']
             filter_str = ",".join(f"{i}-{j}" for i,j in fp)
             args_list = [
                 '--n_patches', str(cfg['n_patches']),
@@ -180,7 +182,7 @@ def main():
                 '--stitch_masks', cfg['stitch_masks'],
                 '--output_dir', cfg['output_dir']
             ]
-        else:  # targeted_matrix
+        elif mode == 'targeted_matrix':  
             script = 'worker_targeted_matrix.py'
             args_list = ['--seed', str(cfg['seed']), '--patch_classes_json', cfg['patch_classes_json']]
             for i,j,n in chunk:

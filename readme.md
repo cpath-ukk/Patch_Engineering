@@ -12,6 +12,22 @@ The **Generalized Approach** producing stitched patches sampled at random or the
 - **Targeted_Matrix**: Generate exactly specified counts for each class–class pairing.
 
 ---
+## 🧭 Choosing a Patch-Engineering Strategy
+
+| Typical situation | Recommended mode | Rationale |
+|-------------------|------------------|-----------|
+| You just need *more* realistic mixed-class patches and **don’t know which boundaries are scarce** | **`generalized`** | Takes any two random patches → quick, no extra parameters. |
+| You **know** the boundary the model struggles with (e.g. TUMOR ↔ BENIGN) but exact counts are irrelevant | **`targeted_filter`** | Keeps only stitched patches that contain at least one pair from your `filter_pairs`; fastest way to up-sample specific boundaries.|
+| You need **strict, reproducible counts** per boundary (e.g. balanced benchmark) | **`targeted_matrix`** | Generates precisely the quota you define in the upper-triangular `matrix`. |
+
+### Quick decision flow
+
+1. **Unsure which transitions are missing?** → `generalized`  
+2. **Know the weak boundaries but fine with “~roughly more” of them?** → `targeted_filter`  
+3. **Need exact numbers per boundary?** → `targeted_matrix`
+
+
+---
 
 ## 📋 Table of Contents
 
@@ -76,7 +92,7 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 | Parameter              | Type              | Description                                                                                             |
 |------------------------|-------------------|---------------------------------------------------------------------------------------------------------|
 | `classes`              | list[int]         | _Optional_; list of class IDs matching matrix rows/columns. Defaults to `[0,1,…,len(matrix)-1]`.       |
-| `matrix`               | list[list[int]]   | Square 2D list (`NxN`) where cell `[i][j]` is the target number of patches for class pair `(classes[i],classes[j])`. Only `i<j` entries are used. |
+| `matrix`               | list[list[int]]   | Square 2D list (`NxN`) which resembles an upper diagonal matrix in which cell `[i][j]` is the target number of patches for class pair `(classes[i],classes[j])`. Only `i<j` entries are used. |
 | `patch_classes_json`   | string            | Path to JSON mapping mask filenames to their contained class IDs (used to build sampling pools).       |
 
 ---
