@@ -1,10 +1,15 @@
 # Patch Stitching Repository
 
-A Python repository for generating composite histopathology image patches by stitching two image–mask pairs along  organically shaped binary masks. Supports three modes:
+A Python repository for generating composite histopathology image patches by stitching two image–mask pairs along organically shaped binary masks. 
 
-- **Random**: Produce _N_ stitched patches sampled at random. 
-- **Filter**: Enrich dataset with underrepresented class co‑occurrences.
-- **Matrix**: Generate exactly specified counts for each class–class pairing.
+It supports the two approaches described in our paper "Patch engineering as an effective data augmentation strategy in low-resource annotation algorithm development". (Put link when publicated)
+
+
+![Patch Engineering Approaches](./images/Patch-Engineering-CH.png)
+
+The **Generalized Approach** producing stitched patches sampled at random or the **Targeted Approach** producing stitched patches to enrich a dataset with underrepresneted class co-occurences. The **Targeted Approach** can be configured in two different modes:
+- **Targeted_Filter**: Provide a list of class co-occurences that you want to produce. Only stitched patches that contain a class co-occurences in that list will be kept.
+- **Targeted_Matrix**: Generate exactly specified counts for each class–class pairing.
 
 ---
 
@@ -40,7 +45,7 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 
 | Parameter             | Type       | Description                                                                                     |
 |-----------------------|------------|-------------------------------------------------------------------------------------------------|
-| `mode`                | string     | Operation mode. One of `random`, `filter`, or `matrix`.                                         |
+| `mode`                | string     | Operation mode. One of `generalized`, `targeted_filter`, or `targeted_matrix`.                                         |
 | `seed`                | integer    | Base RNG seed for all sampling, ensuring reproducibility.                                       |
 | `cpus`                | list[int]  | CPU core indices for pinning workers (e.g. `[0,1,2]`).                                          |
 | `m_norm_img`          | string     | Filepath to a reference image used to fit the Macenko normalizer.                              |
@@ -51,13 +56,13 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 | `output_dir`          | string     | Directory where the generated stitched images (`image/`) and masks (`mask_FINAL/`) will be saved.|
 | `norm_pickle`         | string     | _Optional_; path to save/load the fitted Macenko normalizer. Defaults to `<output_dir>/macenko_normalizer.pkl`.|
 
-### Random mode parameters (`mode: random`)
+### Generalized mode parameters (`mode: generalized`)
 
 | Parameter     | Type    | Description                                                |
 |---------------|---------|------------------------------------------------------------|
 | `n_patches`   | integer | Number of random stitched patches to generate.             |
 
-### Filter mode parameters (`mode: filter`)
+### Targeted_Filter mode parameters (`mode: targeted_filter`)
 
 | Parameter              | Type          | Description                                                            |
 |------------------------|---------------|------------------------------------------------------------------------|
@@ -66,7 +71,7 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 | `patch_classes_json`   | string        | Path to JSON mapping mask filenames to their contained class IDs.       |
    |
 
-### Matrix mode parameters (`mode: matrix`)
+### Targeted_Matrix mode parameters (`mode: targeted_matrix`)
 
 | Parameter              | Type              | Description                                                                                             |
 |------------------------|-------------------|---------------------------------------------------------------------------------------------------------|
@@ -86,7 +91,7 @@ python main.py --config path/to/config.yaml
 
 - The script will:
   1. Fit or load the Macenko normalizer.
-  2. Build `patch_classes.json` (for filter/matrix).  
+  2. Build `patch_classes.json` (for targeted_filter/targeted_matrix).  
   3. Spawn workers pinned to each CPU.  
   4. Write stitched images to output dir. Masks and images are stored separately
 
@@ -95,19 +100,19 @@ python main.py --config path/to/config.yaml
 
 ## Examples
 
-- Generate 100 random stitched patches:
+- Generate 100 stitched patches at random, corresponding to the generelized approach:
   ```bash
-  python main.py --config configs/random.yaml
+  python main.py --config configs/generalized.yaml
   ```
 
 - Generate 100 patches with class‐pairs (1,2) or (3,4):
   ```bash
-  python main.py --config configs/filter.yaml
+  python main.py --config configs/targeted_filter.yaml
   ```
 
 - Generate exactly the desired matrix combinations:
   ```bash
-  python main.py --config configs/matrix.yaml
+  python main.py --config configs/targeted_matrix.yaml
   ```
 
 ## License

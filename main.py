@@ -77,7 +77,7 @@ def chunk_tasks(tasks, n_cpus):
     return chunks
 
 # -----------------------------------------------------------------------------
-# Build patch->classes JSON for filter/matrix modes
+# Build patch->classes JSON for targeted_filter/targeted_matrix modes
 # -----------------------------------------------------------------------------
 
 def collect_patch_classes(mask_dir, out_json):
@@ -128,14 +128,14 @@ def main():
     fit_normalizer(cfg['m_norm_img'], norm_pickle, cpus)
 
     # build patch->classes JSON if needed
-    if cfg['mode'] in ('filter','matrix'):
+    if cfg['mode'] in ('targeted_filter','targeted_matrix'):
         collect_patch_classes(
             os.path.join(cfg['data_root'], cfg['mask_dir_name']),
             cfg['patch_classes_json']
         )
 
     # prepare job chunks
-    if cfg['mode'] == 'matrix':
+    if cfg['mode'] == 'targeted_matrix':
         combos = read_combos(cfg)
         job_chunks = chunk_tasks(combos, n_cpus)
     else:
@@ -151,8 +151,8 @@ def main():
         if not chunk:
             continue
         mode = cfg['mode']
-        if mode == 'random':
-            script = 'worker_random.py'
+        if mode == 'generalized':
+            script = 'worker_generalized.py'
             args_list = [
                 '--n_patches', str(cfg['n_patches']),
                 '--seed', str(cfg['seed']),
@@ -163,9 +163,9 @@ def main():
                 '--stitch_masks', cfg['stitch_masks'],
                 '--output_dir', cfg['output_dir']
             ]
-        elif mode == 'filter':
-            script = 'worker_filter.py'
-            fp = cfg['filter_pairs']
+        elif mode == 'targeted_filter':
+            script = 'worker_targeted_filter.py'
+            fp = cfg['targeted_filter_pairs']
             filter_str = ",".join(f"{i}-{j}" for i,j in fp)
             args_list = [
                 '--n_patches', str(cfg['n_patches']),
@@ -180,8 +180,8 @@ def main():
                 '--stitch_masks', cfg['stitch_masks'],
                 '--output_dir', cfg['output_dir']
             ]
-        else:  # matrix
-            script = 'worker_matrix.py'
+        else:  # targeted_matrix
+            script = 'worker_targeted_matrix.py'
             args_list = ['--seed', str(cfg['seed']), '--patch_classes_json', cfg['patch_classes_json']]
             for i,j,n in chunk:
                 args_list += ['--pair', f"{i},{j}", '--count', str(n)]
