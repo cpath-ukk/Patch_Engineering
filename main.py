@@ -68,14 +68,37 @@ def read_combos(cfg):
 
 def chunk_tasks(tasks, n_cpus):
     tasks = sorted(tasks, key=lambda x: x[2], reverse=True)
-    loads = [0]*n_cpus
+    total = sum(n for _, _, n in tasks)
+    base  = total // n_cpus
+    rem   = total % n_cpus
+    targets = [base + (1 if i < rem else 0) for i in range(n_cpus)]
+
+    # make a mutable queue of tasks
+    queue = [(i, j, n) for (i, j, n) in tasks]
     chunks = [[] for _ in range(n_cpus)]
-    for i,j,n in tasks:
-        idx = loads.index(min(loads))
-        chunks[idx].append((i,j,n))
-        loads[idx] += n
+
+    for idx in range(n_cpus):
+        remaining = targets[idx]
+        while remaining > 0 and queue:
+            i, j, n = queue.pop(0)
+            if n <= remaining:
+                # assign whole task
+                chunks[idx].append((i, j, n))
+                remaining -= n
+            else:
+                # split off a piece
+                chunks[idx].append((i, j, remaining))
+                # put the remainder back on front
+                queue.insert(0, (i, j, n - remaining))
+                remaining = 0
+
     return chunks
 
+def is_chunk_empty(chunk,mode):
+    if mode in ['generalized','targeted_filter']:
+        return chunk == 0
+    if mode == 'targeted_matrix':
+        return len(chunk)==0
 # -----------------------------------------------------------------------------
 # Build patch->classes JSON for targeted_filter/targeted_matrix modes
 # -----------------------------------------------------------------------------
@@ -141,7 +164,14 @@ def main():
         combos = read_combos(cfg)
         job_chunks = chunk_tasks(combos, n_cpus)
     else:
-        job_chunks = ['chunk']*n_cpus # chunk is just a filler string
+        # split total patches evenly across workers
+        total = cfg['n_patches']
+        base  = total // n_cpus
+        rem   = total % n_cpus
+        job_chunks = [
+            base + (1 if i < rem else 0)
+            for i in range(n_cpus)
+        ]
 
     # spawn workers
     cpu_q = Queue()
@@ -149,15 +179,16 @@ def main():
         cpu_q.put(str(c))
 
     procs = []
-    for chunk in job_chunks:
-        if not chunk:
-            continue
+    for worker_idx, chunk in enumerate(job_chunks):
+        seed = cfg['seed'] + worker_idx
         mode = cfg['mode']
+        if is_chunk_empty(chunk,mode):
+            continue
         if mode == 'generalized':
             script = 'worker_generalized.py'
             args_list = [
-                '--n_patches', str(cfg['n_patches']),
-                '--seed', str(cfg['seed']),
+                '--n_patches', str(chunk),
+                '--seed', str(seed),
                 '--data_root', cfg['data_root'],
                 '--mask_dir_name', cfg['mask_dir_name'],
                 '--image_dir_name', cfg['image_dir_name'],
@@ -170,10 +201,9 @@ def main():
             fp = cfg['filter_pairs']
             filter_str = ",".join(f"{i}-{j}" for i,j in fp)
             args_list = [
-                '--n_patches', str(cfg['n_patches']),
-                '--seed', str(cfg['seed']),
+                '--n_patches', str(chunk),
+                '--seed', str(seed),
                 '--filter_pairs', filter_str,
-                '--exclude_existing',
                 '--patch_classes_json', cfg['patch_classes_json'],
                 '--data_root', cfg['data_root'],
                 '--mask_dir_name', cfg['mask_dir_name'],
@@ -182,9 +212,11 @@ def main():
                 '--stitch_masks', cfg['stitch_masks'],
                 '--output_dir', cfg['output_dir']
             ]
+            if cfg.get('exclude_existing',False):
+                    args_list.append('--exclude_existing')
         elif mode == 'targeted_matrix':  
             script = 'worker_targeted_matrix.py'
-            args_list = ['--seed', str(cfg['seed']), '--patch_classes_json', cfg['patch_classes_json']]
+            args_list = ['--seed', str(seed), '--patch_classes_json', cfg['patch_classes_json']]
             for i,j,n in chunk:
                 args_list += ['--pair', f"{i},{j}", '--count', str(n)]
             args_list += [
@@ -196,7 +228,8 @@ def main():
                 '--stitch_masks', cfg['stitch_masks'],
                 '--output_dir', cfg['output_dir']
             ]
-
+            if cfg.get('exclude_existing',False):
+                    args_list.append('--exclude_existing')
         p = Process(target=worker_launcher, args=(script, args_list, cpu_q))
         p.start()
         procs.append(p)

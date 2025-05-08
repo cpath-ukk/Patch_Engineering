@@ -1,7 +1,5 @@
 __pycache__/
 *.py[cod]
 *.pkl
-*.jpg
-*.png
 outputs/
 .env

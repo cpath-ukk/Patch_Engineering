@@ -26,6 +26,10 @@ The **Generalized Approach** producing stitched patches sampled at random or the
 2. **Know the weak boundaries but fine with “~roughly more” of them?** → `targeted_filter`  
 3. **Need exact numbers per boundary?** → `targeted_matrix`
 
+### Examples of all modes
+
+![Examples of Stitching](./images/GitHub_Example.png)
+
 
 ---
 
@@ -55,7 +59,7 @@ The **Generalized Approach** producing stitched patches sampled at random or the
 
 ## Configuration
 
-Each parameter lives in `config.yaml`. Below is a description of every field.
+Each parameter lives in `config.yaml`. Below is a description of every field. We assume that images and masks are in different folders and have the same names except their extensions. Masks are assumed to be `.png` and images to be `.jpg`. Otherwise very small code modifications are necessary.
 
 ### Shared parameters (all modes)
 
@@ -66,7 +70,7 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 | `cpus`                | list[int]  | CPU core indices for pinning workers (e.g. `[0,1,2]`).                                          |
 | `m_norm_img`          | string     | Filepath to a reference image used to fit the Macenko normalizer.                              |
 | `data_root`           | string     | Root directory containing your training dataset hierarchy.                                      |
-| `mask_dir_name`       | string     | Subfolder under `data_root` where mask PNGs are stored (default: `mask_FINAL`).                 |
+| `mask_dir_name`       | string     | Subfolder under `data_root` where mask PNGs are stored (default: `mask_FINAL`).                |
 | `image_dir_name`      | string     | Subfolder under `data_root` for image JPGs (default: `image`).                                   |
 | `stitch_masks`        | string     | Directory of binary stitch masks used for creating boundaries.                                  |
 | `output_dir`          | string     | Directory where the generated stitched images (`image/`) and masks (`mask_FINAL/`) will be saved.|
@@ -84,8 +88,8 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 |------------------------|---------------|------------------------------------------------------------------------|
 | `n_patches`            | integer       | Number of stitched patches to generate.                                 |
 | `filter_pairs`         | list[list[int]] | List of 2‑element lists specifying class pairs to include, e.g. `[[1,2],[3,4]]`.|
-| `patch_classes_json`   | string        | Path to JSON mapping mask filenames to their contained class IDs.       |
-   |
+| `patch_classes_json`   | string        | Path to JSON mapping mask filenames to their contained class IDs. It will be produced under this file path if not present      |
+| `exclude_existing`   | boolean        | Whether patches that already contain one of the desired combinations should be excluded to ensure new combinations being generated      |
 
 ### Targeted_Matrix mode parameters (`mode: targeted_matrix`)
 
@@ -93,8 +97,8 @@ Each parameter lives in `config.yaml`. Below is a description of every field.
 |------------------------|-------------------|---------------------------------------------------------------------------------------------------------|
 | `classes`              | list[int]         | _Optional_; list of class IDs matching matrix rows/columns. Defaults to `[0,1,…,len(matrix)-1]`.       |
 | `matrix`               | list[list[int]]   | Square 2D list (`NxN`) which resembles an upper diagonal matrix in which cell `[i][j]` is the target number of patches for class pair `(classes[i],classes[j])`. Only `i<j` entries are used. |
-| `patch_classes_json`   | string            | Path to JSON mapping mask filenames to their contained class IDs (used to build sampling pools).       |
-
+| `patch_classes_json`   | string            | Path to JSON mapping mask filenames to their contained class IDs (used to build sampling pools).It will be produced under this file path if not present       |
+| `exclude_existing`   | boolean        | Whether patches that already contain the desired combination should be excluded to ensure new combinations being generated.      |
 ---
 
 ## Usage

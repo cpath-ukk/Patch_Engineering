@@ -14,6 +14,7 @@ stitch_masks: /data/01_user/02_ch/DATA/01_Train/02_Patch_Engineering/00_Benign_G
 output_dir: /archive/arch02/03_CH/00_TMP/08_Test_PE_github/stitching_targeted_filter
 
 n_patches: 100
+exclude_existing : true
 filter_pairs:
   - [1,2]
   - [3,4]

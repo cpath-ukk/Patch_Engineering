@@ -15,6 +15,7 @@ output_dir: /archive/arch02/03_CH/00_TMP/08_Test_PE_github/stitching_targeted_ma
 
 
 classes: [1,2,3,4,5]
+exclude_existing : true
 matrix:
   - [0,   10,  20,  10,  0]
   - [0,   0,   20,  17,  0]
